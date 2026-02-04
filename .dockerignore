@@ -1,0 +1,35 @@
+# Build artifacts
+dist/
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Database files
+*.sqlite
+*.db
+database.sqlite
+team.db
+uyho.db
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+server.log
+
+# Git
+.git/
+.gitignore
+
+# Documentation (not needed in production)
+*.md
+!README.md

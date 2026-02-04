@@ -1,0 +1,43 @@
+{
+  "name": "uyho-web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "server": "node server.js",
+    "dev:all": "concurrently \"npm run server\" \"npm run dev\"",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "concurrently": "^9.2.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.0.0",
+    "jszip": "^3.10.1",
+    "libreoffice-convert": "^1.7.0",
+    "mammoth": "^1.11.0",
+    "multer": "^2.0.2",
+    "pdf-lib": "^1.17.1",
+    "pg": "^8.18.0",
+    "pptxgenjs": "^4.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.21.0",
+    "sharp": "^0.34.5",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0",
+    "vite": "^5.0.8"
+  }
+}
