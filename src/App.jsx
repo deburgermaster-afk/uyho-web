@@ -25,6 +25,7 @@ import CampaignView from './pages/CampaignView'
 import Contact from './pages/Contact'
 import Donate from './pages/Donate'
 import Donations from './pages/Donations'
+import Downloads from './pages/Downloads'
 import Home from './pages/Home'
 import JoinUs from './pages/JoinUs'
 import OrganizationChart from './pages/OrganizationChart'
@@ -137,6 +138,7 @@ function AppContent() {
             <Route path="/campaigns" element={<Campaigns />} />
             <Route path="/campaigns/:id" element={<CampaignView />} />
             <Route path="/donations" element={<Donations />} />
+            <Route path="/downloads" element={<Downloads />} />
           </Route>
 
           {/* Public Donation Page (no login required) */}
