@@ -8537,7 +8537,8 @@ app.post('/api/push/send', async (req, res) => {
 // ==================== END PUSH NOTIFICATIONS API ====================
 
 // SPA Fallback - Serve index.html for all non-API routes (must be last)
-app.get('*', (req, res) => {
+// Express 5 requires named wildcards instead of plain '*'
+app.get('/{*path}', (req, res) => {
   // Don't serve index.html for API routes
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ error: 'API endpoint not found' });
