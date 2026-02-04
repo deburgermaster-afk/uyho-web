@@ -35,6 +35,10 @@ export default function WingDetailsPage() {
   const checkAccessAndFetchData = async () => {
     setLoading(true);
     try {
+      // Admin email has full access
+      const userEmail = localStorage.getItem('volunteerEmail') || '';
+      const isSuperAdmin = userEmail.toLowerCase() === 'istiak.ahmed.tj@gmail.com';
+      
       // Check if user has access (is admin or wing chief)
       const [wingRes, volunteersRes, accessRes] = await Promise.all([
         fetch(`/api/wings/${id}?includeMembers=true`),
@@ -52,8 +56,8 @@ export default function WingDetailsPage() {
           ['Wing Chief Executive', 'Wing Deputy Executive'].includes(m.role)
         );
         
-        let isAdmin = false;
-        if (accessRes.ok) {
+        let isAdmin = isSuperAdmin;
+        if (!isAdmin && accessRes.ok) {
           const accessData = await accessRes.json();
           isAdmin = accessData.permissions?.includes('org_settings') || 
                     accessData.permissions?.includes('wing_manage') ||

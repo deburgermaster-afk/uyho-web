@@ -155,6 +155,10 @@ export default function ViewWingPage() {
 
   const fetchWingData = async () => {
     try {
+      // Admin email has full access
+      const userEmail = localStorage.getItem('volunteerEmail') || '';
+      const isSuperAdmin = userEmail.toLowerCase() === 'istiak.ahmed.tj@gmail.com';
+      
       const wingRes = await fetch(`/api/wings/${id}`);
       
       if (wingRes.ok) {
@@ -169,10 +173,14 @@ export default function ViewWingPage() {
         setMembers(mappedMembers);
         setIsMember(mappedMembers.some(m => String(m.id) === String(volunteerId)));
         
-        // Check if user is admin
-        const userMember = mappedMembers.find(m => String(m.id) === String(volunteerId));
-        if (userMember && (userMember.is_admin === 1 || userMember.sort_order === 1)) {
+        // Check if user is admin (super admin always gets admin rights)
+        if (isSuperAdmin) {
           setIsAdmin(true);
+        } else {
+          const userMember = mappedMembers.find(m => String(m.id) === String(volunteerId));
+          if (userMember && (userMember.is_admin === 1 || userMember.sort_order === 1)) {
+            setIsAdmin(true);
+          }
         }
       }
     } catch (err) {

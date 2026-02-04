@@ -33,20 +33,25 @@ export default function EditCampaignPage() {
   useEffect(() => {
     const checkAccess = async () => {
       try {
+        // Admin email has full access
+        const userEmail = localStorage.getItem('volunteerEmail') || '';
+        const isSuperAdmin = userEmail.toLowerCase() === 'istiak.ahmed.tj@gmail.com';
+        
         // Check if user is campaign creator or has campaign_manage permission
         const [campaignRes, accessRes] = await Promise.all([
           fetch(`/api/campaigns/${id}`),
           fetch(`/api/access-settings/user/${volunteerId}`)
         ])
         
-        if (campaignRes.ok && accessRes.ok) {
+        if (campaignRes.ok) {
           const campaign = await campaignRes.json()
-          const accessData = await accessRes.json()
+          const accessData = accessRes.ok ? await accessRes.json() : { permissions: [] }
           const permissions = accessData.permissions || []
           
-          // Allow access if user is creator, has campaign_manage, or is admin
+          // Allow access if user is creator, has campaign_manage, is admin, or is super admin
           const isCreator = campaign.created_by?.toString() === volunteerId?.toString()
-          const canManage = permissions.includes('campaign_manage') || 
+          const canManage = isSuperAdmin ||
+                          permissions.includes('campaign_manage') || 
                           permissions.includes('org_settings') ||
                           accessData.role === 'Admin'
           

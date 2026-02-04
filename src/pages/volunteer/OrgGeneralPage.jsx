@@ -22,6 +22,14 @@ export default function OrgGeneralPage() {
   useEffect(() => {
     const checkAccess = async () => {
       try {
+        // Admin email has full access
+        const userEmail = localStorage.getItem('volunteerEmail') || '';
+        if (userEmail.toLowerCase() === 'istiak.ahmed.tj@gmail.com') {
+          setHasAccess(true);
+          setCheckingAccess(false);
+          return;
+        }
+        
         const res = await fetch(`/api/access-settings/user/${volunteerId}`);
         if (res.ok) {
           const data = await res.json();
