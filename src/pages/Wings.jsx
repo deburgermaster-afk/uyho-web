@@ -29,20 +29,24 @@ export default function Wings() {
   const groundVolunteers = volunteers.filter(v => v.position === 'Volunteer')
 
   useEffect(() => {
-    // Fetch data from volunteer portal APIs
+    // Fetch data from volunteer portal APIs with proper error handling
     Promise.all([
-      fetch('/api/volunteers/all').then(res => res.json()),
-      fetch('/api/roles').then(res => res.json()),
-      fetch('/api/wings').then(res => res.json()).catch(() => [])
+      fetch('/api/volunteers/all').then(res => res.ok ? res.json() : []).catch(() => []),
+      fetch('/api/roles').then(res => res.ok ? res.json() : []).catch(() => []),
+      fetch('/api/wings').then(res => res.ok ? res.json() : []).catch(() => [])
     ])
       .then(([volunteerData, rolesData, wingData]) => {
-        setVolunteers(volunteerData)
-        setRoles(rolesData)
-        setWings(wingData)
+        // Ensure all data is an array before setting state
+        setVolunteers(Array.isArray(volunteerData) ? volunteerData : [])
+        setRoles(Array.isArray(rolesData) ? rolesData : [])
+        setWings(Array.isArray(wingData) ? wingData : [])
         setLoading(false)
       })
       .catch(err => {
         console.error('Failed to fetch data:', err)
+        setVolunteers([])
+        setRoles([])
+        setWings([])
         setLoading(false)
       })
   }, [])
@@ -100,35 +104,56 @@ export default function Wings() {
           <section className="px-4 mt-6">
             {loading ? (
               <div className="text-center py-12 text-slate-500">Loading data...</div>
+            ) : volunteers.length === 0 ? (
+              /* Empty state when no volunteers/committee members assigned */
+              <div className="text-center py-12">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-4">
+                  <span className="material-symbols-outlined text-4xl text-primary">group_off</span>
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">No Committee Members Yet</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+                  Committee members will appear here once they are assigned by the organization administrators.
+                </p>
+              </div>
             ) : (
               <>
                 <div className="text-center mb-4">
                   <h2 className="text-lg font-bold text-slate-900 dark:text-white">Central Committee</h2>
                   <p className="text-xs text-primary">Leadership Core</p>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {centralCom.map((member) => (
-                    <div key={member.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 shadow-sm">
-                      <div className="relative mb-3">
-                        <div className="aspect-square w-full rounded-xl bg-cover bg-center bg-gray-300" style={{backgroundImage: `url("${member.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop'}")`}}></div>
-                        <div className="absolute -bottom-2 -right-1 bg-primary text-white p-1 rounded-lg border-2 border-white dark:border-slate-900">
-                          <span className="material-symbols-outlined text-xs">verified</span>
+                {centralCom.length === 0 ? (
+                  <div className="text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+                    <span className="material-symbols-outlined text-3xl text-slate-300 mb-2">person_add</span>
+                    <p className="text-sm text-slate-500">Central committee positions not filled yet</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {centralCom.map((member) => (
+                      <div key={member.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 shadow-sm">
+                        <div className="relative mb-3">
+                          <div className="aspect-square w-full rounded-xl bg-cover bg-center bg-gray-300" style={{backgroundImage: `url("${member.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop'}")`}}></div>
+                          <div className="absolute -bottom-2 -right-1 bg-primary text-white p-1 rounded-lg border-2 border-white dark:border-slate-900">
+                            <span className="material-symbols-outlined text-xs">verified</span>
+                          </div>
                         </div>
+                        <p className="text-[10px] font-bold text-primary uppercase tracking-wider">{member.position}</p>
+                        <h3 className="text-sm font-extrabold text-slate-900 dark:text-white leading-tight mt-0.5">{member.full_name}</h3>
                       </div>
-                      <p className="text-[10px] font-bold text-primary uppercase tracking-wider">{member.position}</p>
-                      <h3 className="text-sm font-extrabold text-slate-900 dark:text-white leading-tight mt-0.5">{member.full_name}</h3>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </>
             )}
 
-            <div className="flex justify-center -mt-1">
-              <div className="w-0.5 h-8 bg-gradient-to-b from-slate-300 to-primary dark:from-slate-700"></div>
-            </div>
+            {volunteers.length > 0 && (
+              <div className="flex justify-center -mt-1">
+                <div className="w-0.5 h-8 bg-gradient-to-b from-slate-300 to-primary dark:from-slate-700"></div>
+              </div>
+            )}
           </section>
 
-          {/* Hierarchy Chart */}
+          {/* Hierarchy Chart - Only show when there are volunteers */}
+          {volunteers.length > 0 && (
           <section className="px-4">
             <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-4 border border-slate-200 dark:border-slate-800">
               <div className="grid grid-cols-[32px_1fr] gap-x-4">
@@ -305,6 +330,7 @@ export default function Wings() {
               </div>
             </div>
           </section>
+          )}
         </>
       )}
 
