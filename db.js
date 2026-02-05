@@ -456,6 +456,19 @@ export async function initializeMySQLDatabase() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`,
     
+    `CREATE TABLE IF NOT EXISTS activities (
+      id SERIAL PRIMARY KEY,
+      volunteer_id INTEGER NOT NULL,
+      activity_type VARCHAR(100) NOT NULL,
+      description TEXT,
+      campaign_id INTEGER,
+      campaign_title VARCHAR(255),
+      wing_id INTEGER,
+      role VARCHAR(100),
+      badge_id INTEGER,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+    
     `CREATE TABLE IF NOT EXISTS allies (
       id SERIAL PRIMARY KEY,
       volunteer_id INTEGER NOT NULL,
