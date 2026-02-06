@@ -891,10 +891,15 @@ app.post('/api/messages', (req, res) => {
   // For non-text messages, content can be empty string
   const messageContent = content || '';
   
+  // Convert undefined to null for Turso/SQLite compatibility
+  const safeFileUrl = fileUrl || null;
+  const safeFileName = fileName || null;
+  const safeFileSize = fileSize || null;
+  
   db.run(
     `INSERT INTO messages (conversation_id, sender_id, content, message_type, file_url, file_name, file_size)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [conversationId, senderId, messageContent, messageType, fileUrl, fileName, fileSize],
+    [conversationId, senderId, messageContent, messageType, safeFileUrl, safeFileName, safeFileSize],
     function(err) {
       if (err) {
         return res.status(500).json({ error: err.message })
@@ -1084,9 +1089,11 @@ app.post('/api/conversations/:conversationId/typing', (req, res) => {
     typingUsers[conversationId].add(parseInt(volunteerId));
     // Auto-remove after 5 seconds of inactivity
     setTimeout(() => {
-      typingUsers[conversationId].delete(parseInt(volunteerId));
-      if (typingUsers[conversationId].size === 0) {
-        delete typingUsers[conversationId];
+      if (typingUsers[conversationId]) {
+        typingUsers[conversationId].delete(parseInt(volunteerId));
+        if (typingUsers[conversationId].size === 0) {
+          delete typingUsers[conversationId];
+        }
       }
     }, 5000);
   } else {
@@ -1346,10 +1353,15 @@ app.post('/api/groups/:groupId/messages', (req, res) => {
   // For non-text messages, content can be empty string
   const messageContent = content || '';
   
+  // Convert undefined to null for Turso/SQLite compatibility
+  const safeFileUrl = fileUrl || null;
+  const safeFileName = fileName || null;
+  const safeFileSize = fileSize || null;
+  
   db.run(
     `INSERT INTO messages (conversation_id, group_id, sender_id, content, message_type, file_url, file_name, file_size)
      VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)`,
-    [groupId, senderId, messageContent, messageType, fileUrl, fileName, fileSize],
+    [groupId, senderId, messageContent, messageType, safeFileUrl, safeFileName, safeFileSize],
     function(err) {
       if (err) {
         return res.status(500).json({ error: err.message })
