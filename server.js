@@ -888,10 +888,13 @@ app.post('/api/messages', (req, res) => {
     return res.status(400).json({ error: 'Content is required for text messages' })
   }
   
+  // For non-text messages, content can be empty string
+  const messageContent = content || '';
+  
   db.run(
     `INSERT INTO messages (conversation_id, sender_id, content, message_type, file_url, file_name, file_size)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [conversationId, senderId, content, messageType, fileUrl, fileName, fileSize],
+    [conversationId, senderId, messageContent, messageType, fileUrl, fileName, fileSize],
     function(err) {
       if (err) {
         return res.status(500).json({ error: err.message })
@@ -1340,10 +1343,13 @@ app.post('/api/groups/:groupId/messages', (req, res) => {
     return res.status(400).json({ error: 'senderId is required' })
   }
   
+  // For non-text messages, content can be empty string
+  const messageContent = content || '';
+  
   db.run(
     `INSERT INTO messages (conversation_id, group_id, sender_id, content, message_type, file_url, file_name, file_size)
      VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)`,
-    [groupId, senderId, content, messageType, fileUrl, fileName, fileSize],
+    [groupId, senderId, messageContent, messageType, fileUrl, fileName, fileSize],
     function(err) {
       if (err) {
         return res.status(500).json({ error: err.message })

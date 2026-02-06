@@ -576,7 +576,7 @@ export async function initializeMySQLDatabase() {
       group_id INTEGER,
       sender_id INTEGER NOT NULL,
       receiver_id INTEGER,
-      content TEXT NOT NULL,
+      content TEXT,
       message_type VARCHAR(50) DEFAULT 'text',
       file_url TEXT,
       file_name VARCHAR(255),
@@ -1057,6 +1057,22 @@ export async function initializeMySQLDatabase() {
       await client.query("ALTER TABLE team_members ADD COLUMN IF NOT EXISTS specialty VARCHAR(255)");
     } catch (err) {
       // Columns may already exist
+    }
+
+    // Fix messages table - allow null content for file messages
+    try {
+      await client.query("ALTER TABLE messages ALTER COLUMN content DROP NOT NULL");
+    } catch (err) {
+      // Constraint may not exist or already removed
+    }
+
+    // Fix wings approval_status - ensure it defaults to pending
+    try {
+      await client.query("ALTER TABLE wings ALTER COLUMN approval_status SET DEFAULT 'pending'");
+      // Set any null approval_status to pending
+      await client.query("UPDATE wings SET approval_status = 'pending' WHERE approval_status IS NULL");
+    } catch (err) {
+      // Column may already have default
     }
 
     // Add missing columns to notifications table
