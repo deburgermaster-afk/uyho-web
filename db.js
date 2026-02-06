@@ -189,7 +189,6 @@ function convertToPostgreSQL(sql) {
       else if (tableName === 'ummah_funds') conflictColumns = 'entity_type, entity_id';
       
       // Build column update list (excluding the conflict columns)
-      const colArray = columns.split(',').map(c => c.trim());
       const conflictColArray = conflictColumns.split(',').map(c => c.trim());
       const updateCols = colArray.filter(c => !conflictColArray.includes(c));
       const updateSet = updateCols.map(c => `${c} = EXCLUDED.${c}`).join(', ');
