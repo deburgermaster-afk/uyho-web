@@ -1,0 +1,66 @@
+{
+  "packageId": "org.uyho.volunteer",
+  "host": "uyho.org",
+  "name": "UYHO Volunteer Portal",
+  "launcherName": "UYHO",
+  "display": "standalone",
+  "themeColor": "#1B8398",
+  "themeColorDark": "#0d1829",
+  "navigationColor": "#1B8398",
+  "navigationColorDark": "#0d1829",
+  "navigationDividerColor": "#1B8398",
+  "navigationDividerColorDark": "#0d1829",
+  "backgroundColor": "#ffffff",
+  "enableNotifications": true,
+  "startUrl": "/volunteer",
+  "iconUrl": "https://uyho.org/icons/icon-512x512.png",
+  "maskableIconUrl": "https://uyho.org/icons/maskable-icon-512x512.png",
+  "monochromeIconUrl": "",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "uyho-key"
+  },
+  "appVersionCode": 1,
+  "appVersionName": "1.0.0",
+  "shortcuts": [
+    {
+      "name": "Campaigns",
+      "shortName": "Campaigns",
+      "url": "/volunteer/campaigns",
+      "chosenIconUrl": "https://uyho.org/icons/icon-192x192.png"
+    },
+    {
+      "name": "Leaderboard",
+      "shortName": "Rank",
+      "url": "/volunteer/leaderboard",
+      "chosenIconUrl": "https://uyho.org/icons/icon-192x192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://uyho.org/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": {
+      "enabled": false
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://uyho.org/",
+  "minSdkVersion": 24,
+  "targetSdkVersion": 34,
+  "orientation": "portrait",
+  "fingerprints": [
+    "AD:2D:AA:0B:61:E5:D7:76:20:8B:C1:AD:A7:CE:BB:2B:7C:E2:3F:39:32:64:46:82:9F:17:EE:DB:8A:27:B0:48"
+  ],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": []
+}

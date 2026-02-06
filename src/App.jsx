@@ -29,6 +29,9 @@ import Downloads from './pages/Downloads'
 import Home from './pages/Home'
 import JoinUs from './pages/JoinUs'
 import OrganizationChart from './pages/OrganizationChart'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import DeleteAccount from './pages/DeleteAccount'
+import ChildSafety from './pages/ChildSafety'
 import PublicDonatePage from './pages/PublicDonatePage'
 import Wings from './pages/Wings'
 import WingView from './pages/WingView'
@@ -58,6 +61,7 @@ import EditCampaignPage from './pages/volunteer/EditCampaignPage'
 import EditProfilePage from './pages/volunteer/EditProfilePage'
 import LeaderboardPage from './pages/volunteer/LeaderboardPage'
 import LoginPage from './pages/volunteer/LoginPage'
+import AppLoginPage from './pages/volunteer/AppLoginPage'
 import ManageCampaignPage from './pages/volunteer/ManageCampaignPage'
 import OrgCommitteePage from './pages/volunteer/OrgCommitteePage'
 import OrgGeneralPage from './pages/volunteer/OrgGeneralPage'
@@ -80,13 +84,21 @@ import WingDetailsPage from './pages/volunteer/WingDetailsPage'
 import WingEditPage from './pages/volunteer/WingEditPage'
 import WingsPage from './pages/volunteer/WingsPage'
 
-// Protected Route Component
+// Check if running as installed app (PWA/TWA)
+const isInstalledApp = () => {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         window.navigator.standalone === true ||
+         document.referrer.includes('android-app://');
+};
+
+// Protected Route Component - redirects to app login for installed app
 function ProtectedRoute({ children }) {
   const location = useLocation();
   const volunteerId = localStorage.getItem('volunteerId');
 
   if (!volunteerId) {
-    return <Navigate to="/volunteer/login" state={{ from: location }} replace />;
+    const loginPath = isInstalledApp() ? '/app/login' : '/volunteer/login';
+    return <Navigate to={loginPath} state={{ from: location }} replace />;
   }
 
   return children;
@@ -143,6 +155,16 @@ function AppContent() {
 
           {/* Public Donation Page (no login required) */}
           <Route path="/donate/:type/:id" element={<PublicDonatePage />} />
+
+          {/* Privacy Policy */}
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+
+          {/* Delete Account */}
+          <Route path="/delete-account" element={<DeleteAccount />} />
+          {/* Child Safety Standards */}
+          <Route path="/child-safety" element={<ChildSafety />} />
+          {/* App Login (for installed PWA/TWA - no back button) */}
+          <Route path="/app/login" element={<AppLoginPage />} />
 
           {/* Volunteer Portal Routes - Protected with Auth */}
           <Route path="/volunteer/login" element={<LoginPage />} />

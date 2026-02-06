@@ -206,13 +206,13 @@ export default function GlobalSearch({ isOpen, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-white z-[100]">
+    <div className="fixed inset-0 bg-white dark:bg-slate-900 z-[100]">
       {/* Search Header */}
-      <div className="bg-white border-b border-slate-100 px-4 py-3">
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 px-4 py-3">
         <div className="flex items-center gap-3 max-w-md mx-auto">
           <button 
             onClick={handleClose}
-            className="p-2 hover:bg-slate-100 rounded-full transition"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition text-slate-900 dark:text-white"
           >
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
@@ -223,12 +223,12 @@ export default function GlobalSearch({ isOpen, onClose }) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search volunteers, campaigns, wings..."
-              className="w-full bg-slate-100 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-500 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
             {searchQuery && (
               <button 
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-200 rounded-full"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full"
               >
                 <span className="material-symbols-outlined text-slate-400 text-lg">close</span>
               </button>
@@ -238,22 +238,22 @@ export default function GlobalSearch({ isOpen, onClose }) {
       </div>
 
       {/* Search Results */}
-      <div className="overflow-y-auto h-[calc(100vh-70px)] max-w-md mx-auto">
+      <div className="overflow-y-auto h-[calc(100vh-70px)] max-w-md mx-auto bg-white dark:bg-slate-900">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <span className="material-symbols-outlined animate-spin text-3xl text-slate-300">progress_activity</span>
+            <span className="material-symbols-outlined animate-spin text-3xl text-slate-300 dark:text-slate-600">progress_activity</span>
           </div>
         ) : searchQuery === '' ? (
           // Initial state - show categories
           <div className="p-4 space-y-6">
             <div>
-              <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-2">Volunteers</h3>
+              <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3 px-2">Volunteers</h3>
               <div className="space-y-1">
                 {volunteers.filter(v => String(v.id) !== String(currentUserId)).sort((a, b) => isAlly(b.id) - isAlly(a.id)).slice(0, 3).map(v => (
                   <button
                     key={v.id}
                     onClick={() => handleItemClick('volunteer', v)}
-                    className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl transition"
+                    className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition"
                   >
                     <div className="relative">
                       <img 
@@ -262,36 +262,36 @@ export default function GlobalSearch({ isOpen, onClose }) {
                         className="size-10 rounded-full object-cover"
                       />
                       {isAlly(v.id) && (
-                        <div className="absolute -bottom-0.5 -right-0.5 size-4 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white">
+                        <div className="absolute -bottom-0.5 -right-0.5 size-4 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900">
                           <span className="material-symbols-outlined text-white text-[10px] fill-icon">group</span>
                         </div>
                       )}
                     </div>
                     <div className="flex-1 text-left">
                       <div className="flex items-center gap-1.5">
-                        <p className="text-sm font-semibold text-slate-900">{v.full_name}</p>
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white">{v.full_name}</p>
                         {isAlly(v.id) && (
-                          <span className="text-[9px] font-bold text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded-full">ALLY</span>
+                          <span className="text-[9px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/50 px-1.5 py-0.5 rounded-full">ALLY</span>
                         )}
                       </div>
                       <p className="text-xs text-slate-500">{v.wing} • {v.position}</p>
                     </div>
-                    <span className="material-symbols-outlined text-slate-300">chevron_right</span>
+                    <span className="material-symbols-outlined text-slate-300 dark:text-slate-600">chevron_right</span>
                   </button>
                 ))}
               </div>
             </div>
 
             <div>
-              <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-2">Campaigns</h3>
+              <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3 px-2">Campaigns</h3>
               <div className="space-y-1">
                 {campaigns.sort((a, b) => isJoinedCampaign(b.id) - isJoinedCampaign(a.id)).slice(0, 3).map(c => (
                   <button
                     key={c.id}
                     onClick={() => handleItemClick('campaign', c)}
-                    className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl transition"
+                    className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition"
                   >
-                    <div className="size-10 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0">
+                    <div className="size-10 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 flex-shrink-0">
                       {c.image ? (
                         <img src={c.image} alt={c.title} className="w-full h-full object-cover" />
                       ) : (
@@ -302,27 +302,27 @@ export default function GlobalSearch({ isOpen, onClose }) {
                     </div>
                     <div className="flex-1 text-left">
                       <div className="flex items-center gap-1.5">
-                        <p className="text-sm font-semibold text-slate-900">{c.title}</p>
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white">{c.title}</p>
                         {isJoinedCampaign(c.id) && (
-                          <span className="text-[9px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded-full">JOINED</span>
+                          <span className="text-[9px] font-bold text-blue-600 bg-blue-100 dark:bg-blue-900/50 px-1.5 py-0.5 rounded-full">JOINED</span>
                         )}
                       </div>
                       <p className="text-xs text-slate-500">{c.wing}</p>
                     </div>
-                    <span className="material-symbols-outlined text-slate-300">chevron_right</span>
+                    <span className="material-symbols-outlined text-slate-300 dark:text-slate-600">chevron_right</span>
                   </button>
                 ))}
               </div>
             </div>
 
             <div>
-              <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-2">Wings</h3>
+              <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3 px-2">Wings</h3>
               <div className="space-y-1">
                 {wings.length > 0 ? [...wings].sort((a, b) => isJoinedWing(b.id) - isJoinedWing(a.id)).map(w => (
                   <button
                     key={w.id}
                     onClick={() => handleItemClick('wing', w)}
-                    className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl transition"
+                    className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition"
                   >
                     <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center overflow-hidden">
                       {w.image ? (
@@ -333,17 +333,17 @@ export default function GlobalSearch({ isOpen, onClose }) {
                     </div>
                     <div className="flex-1 text-left">
                       <div className="flex items-center gap-1.5">
-                        <p className="text-sm font-semibold text-slate-900">{w.name}</p>
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white">{w.name}</p>
                         {isJoinedWing(w.id) && (
-                          <span className="text-[9px] font-bold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded-full">JOINED</span>
+                          <span className="text-[9px] font-bold text-purple-600 bg-purple-100 dark:bg-purple-900/50 px-1.5 py-0.5 rounded-full">JOINED</span>
                         )}
                       </div>
                       <p className="text-xs text-slate-500">{w.member_count || 0} members</p>
                     </div>
-                    <span className="material-symbols-outlined text-slate-300">chevron_right</span>
+                    <span className="material-symbols-outlined text-slate-300 dark:text-slate-600">chevron_right</span>
                   </button>
                 )) : (
-                  <p className="text-sm text-slate-400 px-3 py-2">No wings created yet</p>
+                  <p className="text-sm text-slate-400 dark:text-slate-500 px-3 py-2">No wings created yet</p>
                 )}
               </div>
             </div>
@@ -354,13 +354,13 @@ export default function GlobalSearch({ isOpen, onClose }) {
             {/* Best Matches */}
             {getBestMatches().length > 0 && (
               <div>
-                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-2">Best Matches</h3>
+                <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3 px-2">Best Matches</h3>
                 <div className="space-y-1">
                   {getBestMatches().map((result, i) => (
                     <button
                       key={i}
                       onClick={() => handleItemClick(result.type, result.data)}
-                      className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl transition"
+                      className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition"
                     >
                       {result.type === 'volunteer' ? (
                         <div className="relative">
@@ -370,7 +370,7 @@ export default function GlobalSearch({ isOpen, onClose }) {
                             className="size-10 rounded-full object-cover"
                           />
                           {isAlly(result.data.id) && (
-                            <div className="absolute -bottom-0.5 -right-0.5 size-4 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white">
+                            <div className="absolute -bottom-0.5 -right-0.5 size-4 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900">
                               <span className="material-symbols-outlined text-white text-[10px] fill-icon">group</span>
                             </div>
                           )}
@@ -390,18 +390,18 @@ export default function GlobalSearch({ isOpen, onClose }) {
                       )}
                       <div className="flex-1 text-left">
                         <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-semibold text-slate-900">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">
                             {result.type === 'volunteer' ? result.data.full_name : 
                              result.type === 'campaign' ? result.data.title : result.data.name}
                           </p>
                           {result.type === 'volunteer' && isAlly(result.data.id) && (
-                            <span className="text-[9px] font-bold text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded-full">ALLY</span>
+                            <span className="text-[9px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/50 px-1.5 py-0.5 rounded-full">ALLY</span>
                           )}
                           {result.type === 'campaign' && isJoinedCampaign(result.data.id) && (
-                            <span className="text-[9px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded-full">JOINED</span>
+                            <span className="text-[9px] font-bold text-blue-600 bg-blue-100 dark:bg-blue-900/50 px-1.5 py-0.5 rounded-full">JOINED</span>
                           )}
                           {result.type === 'wing' && isJoinedWing(result.data.id) && (
-                            <span className="text-[9px] font-bold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded-full">JOINED</span>
+                            <span className="text-[9px] font-bold text-purple-600 bg-purple-100 dark:bg-purple-900/50 px-1.5 py-0.5 rounded-full">JOINED</span>
                           )}
                         </div>
                         <p className="text-xs text-slate-500">
@@ -421,13 +421,13 @@ export default function GlobalSearch({ isOpen, onClose }) {
             {/* Grouped Results - Volunteers */}
             {filteredVolunteers.length > 0 && (
               <div>
-                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-2">Volunteers ({filteredVolunteers.length})</h3>
+                <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3 px-2">Volunteers ({filteredVolunteers.length})</h3>
                 <div className="space-y-1">
                   {filteredVolunteers.slice(0, 5).map(v => (
                     <button
                       key={v.id}
                       onClick={() => handleItemClick('volunteer', v)}
-                      className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl transition"
+                      className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition"
                     >
                       <div className="relative">
                         <img 
@@ -436,16 +436,16 @@ export default function GlobalSearch({ isOpen, onClose }) {
                           className="size-10 rounded-full object-cover"
                         />
                         {isAlly(v.id) && (
-                          <div className="absolute -bottom-0.5 -right-0.5 size-4 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white">
+                          <div className="absolute -bottom-0.5 -right-0.5 size-4 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900">
                             <span className="material-symbols-outlined text-white text-[10px] fill-icon">group</span>
                           </div>
                         )}
                       </div>
                       <div className="flex-1 text-left">
                         <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-semibold text-slate-900">{v.full_name}</p>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">{v.full_name}</p>
                           {isAlly(v.id) && (
-                            <span className="text-[9px] font-bold text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded-full">ALLY</span>
+                            <span className="text-[9px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/50 px-1.5 py-0.5 rounded-full">ALLY</span>
                           )}
                         </div>
                         <p className="text-xs text-slate-500">{v.wing} • {v.position}</p>
@@ -459,15 +459,15 @@ export default function GlobalSearch({ isOpen, onClose }) {
             {/* Grouped Results - Campaigns */}
             {filteredCampaigns.length > 0 && (
               <div>
-                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-2">Campaigns ({filteredCampaigns.length})</h3>
+                <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3 px-2">Campaigns ({filteredCampaigns.length})</h3>
                 <div className="space-y-1">
                   {filteredCampaigns.slice(0, 5).map(c => (
                     <button
                       key={c.id}
                       onClick={() => handleItemClick('campaign', c)}
-                      className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl transition"
+                      className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition"
                     >
-                      <div className="size-10 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0">
+                      <div className="size-10 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 flex-shrink-0">
                         {c.image ? (
                           <img src={c.image} alt={c.title} className="w-full h-full object-cover" />
                         ) : (
@@ -478,9 +478,9 @@ export default function GlobalSearch({ isOpen, onClose }) {
                       </div>
                       <div className="flex-1 text-left">
                         <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-semibold text-slate-900">{c.title}</p>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">{c.title}</p>
                           {isJoinedCampaign(c.id) && (
-                            <span className="text-[9px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded-full">JOINED</span>
+                            <span className="text-[9px] font-bold text-blue-600 bg-blue-100 dark:bg-blue-900/50 px-1.5 py-0.5 rounded-full">JOINED</span>
                           )}
                         </div>
                         <p className="text-xs text-slate-500">{c.wing}</p>
@@ -494,13 +494,13 @@ export default function GlobalSearch({ isOpen, onClose }) {
             {/* Grouped Results - Wings */}
             {filteredWings.length > 0 && (
               <div>
-                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-2">Wings ({filteredWings.length})</h3>
+                <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3 px-2">Wings ({filteredWings.length})</h3>
                 <div className="space-y-1">
                   {filteredWings.map(w => (
                     <button
                       key={w.id}
                       onClick={() => handleItemClick('wing', w)}
-                      className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl transition"
+                      className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition"
                     >
                       <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center overflow-hidden">
                         {w.image ? (
@@ -511,9 +511,9 @@ export default function GlobalSearch({ isOpen, onClose }) {
                       </div>
                       <div className="flex-1 text-left">
                         <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-semibold text-slate-900">{w.name}</p>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">{w.name}</p>
                           {isJoinedWing(w.id) && (
-                            <span className="text-[9px] font-bold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded-full">JOINED</span>
+                            <span className="text-[9px] font-bold text-purple-600 bg-purple-100 dark:bg-purple-900/50 px-1.5 py-0.5 rounded-full">JOINED</span>
                           )}
                         </div>
                         <p className="text-xs text-slate-500">{w.member_count || 0} members</p>
@@ -527,7 +527,7 @@ export default function GlobalSearch({ isOpen, onClose }) {
             {/* No Results */}
             {filteredVolunteers.length === 0 && filteredCampaigns.length === 0 && filteredWings.length === 0 && (
               <div className="text-center py-12">
-                <span className="material-symbols-outlined text-5xl text-slate-200 mb-3">search_off</span>
+                <span className="material-symbols-outlined text-5xl text-slate-200 dark:text-slate-700 mb-3">search_off</span>
                 <p className="text-slate-500">No results found for "{searchQuery}"</p>
               </div>
             )}

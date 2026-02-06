@@ -45,12 +45,27 @@ app.use(cors())
 app.use(express.json({ limit: '50mb' }))
 app.use(express.urlencoded({ extended: true, limit: '50mb' }))
 
+// Serve .well-known directory for Android Asset Links verification
+app.use('/.well-known', express.static(path.join(__dirname, 'public', '.well-known'), {
+  setHeaders: (res, filePath) => {
+    res.setHeader('Content-Type', 'application/json');
+  }
+}))
+
 // Serve static files from public directory (uploads, avatars, etc.)
 app.use(express.static(path.join(__dirname, 'public')))
 
 // In production, serve the built frontend from dist folder
 if (isProduction) {
-  app.use(express.static(path.join(__dirname, 'dist')))
+  app.use(express.static(path.join(__dirname, 'dist'), {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      } else if (filePath.endsWith('.css')) {
+        res.setHeader('Content-Type', 'text/css');
+      }
+    }
+  }))
 }
 
 // Initialize MySQL database
@@ -402,8 +417,8 @@ app.post('/api/allies', (req, res) => {
   }
   
   db.run(
-    'INSERT OR IGNORE INTO allies (volunteer_id, ally_id) VALUES (?, ?)',
-    [volunteerId, allyId],
+    'INSERT INTO allies (volunteer_id, ally_id, status) VALUES (?, ?, ?) ON CONFLICT (volunteer_id, ally_id) DO NOTHING',
+    [volunteerId, allyId, 'accepted'],
     function(err) {
       if (err) {
         return res.status(500).json({ error: err.message })
@@ -438,7 +453,7 @@ app.get('/api/allies/:volunteerId', (req, res) => {
     `SELECT v.id, v.full_name, v.avatar, v.wing, v.position, a.created_at as allied_at
      FROM allies a 
      JOIN volunteers v ON a.ally_id = v.id 
-     WHERE a.volunteer_id = ?
+     WHERE a.volunteer_id = ? AND a.status = 'accepted'
      ORDER BY a.created_at DESC`,
     [volunteerId],
     (err, rows) => {
@@ -455,7 +470,7 @@ app.get('/api/allies/:volunteerId/count', (req, res) => {
   const { volunteerId } = req.params
   
   db.get(
-    'SELECT COUNT(*) as count FROM allies WHERE volunteer_id = ?',
+    "SELECT COUNT(*) as count FROM allies WHERE volunteer_id = ? AND status = 'accepted'",
     [volunteerId],
     (err, row) => {
       if (err) {
@@ -471,7 +486,7 @@ app.get('/api/allies/check/:volunteerId/:allyId', (req, res) => {
   const { volunteerId, allyId } = req.params
   
   db.get(
-    'SELECT id FROM allies WHERE volunteer_id = ? AND ally_id = ?',
+    "SELECT id FROM allies WHERE volunteer_id = ? AND ally_id = ? AND status = 'accepted'",
     [volunteerId, allyId],
     (err, row) => {
       if (err) {
@@ -503,7 +518,7 @@ app.get('/api/allies/:volunteerId/ids', (req, res) => {
   const { volunteerId } = req.params
   
   db.all(
-    'SELECT ally_id FROM allies WHERE volunteer_id = ?',
+    "SELECT ally_id FROM allies WHERE volunteer_id = ? AND status = 'accepted'",
     [volunteerId],
     (err, rows) => {
       if (err) {
@@ -892,13 +907,13 @@ app.post('/api/messages', (req, res) => {
       
       // Get recipient and send notification
       db.get(`
-        SELECT c.user1_id, c.user2_id, v.full_name as sender_name, v.avatar as sender_avatar
+        SELECT c.participant1_id, c.participant2_id, v.full_name as sender_name, v.avatar as sender_avatar
         FROM conversations c
         JOIN volunteers v ON v.id = ?
         WHERE c.id = ?
       `, [senderId, conversationId], (convErr, convData) => {
         if (!convErr && convData) {
-          const recipientId = convData.user1_id == senderId ? convData.user2_id : convData.user1_id;
+          const recipientId = convData.participant1_id == senderId ? convData.participant2_id : convData.participant1_id;
           const notifType = messageType === 'image' ? 'message_image' : 'message';
           const preview = messageType === 'text' ? (content.length > 50 ? content.slice(0, 50) + '...' : content) : (messageType === 'image' ? 'Sent an image' : 'Sent a file');
           
@@ -3335,9 +3350,10 @@ app.post('/api/wings', (req, res) => {
     
     // Add members if provided
     if (members && members.length > 0) {
-      db.run(`
-        INSERT OR REPLACE INTO wing_members (wing_id, volunteer_id, role, sort_order)
+      const stmt = db.prepare(`
+        INSERT INTO wing_members (wing_id, volunteer_id, role, sort_order)
         VALUES (?, ?, ?, ?)
+        ON CONFLICT (wing_id, volunteer_id) DO UPDATE SET role = EXCLUDED.role, sort_order = EXCLUDED.sort_order
       `);
       
       members.forEach(member => {
@@ -3345,6 +3361,7 @@ app.post('/api/wings', (req, res) => {
         stmt.run(wingId, member.volunteerId, member.role, roleInfo.sort_order);
       });
       
+      stmt.finalize();
     }
     
     res.json({ success: true, id: wingId, message: 'Wing created and pending approval' });
@@ -5335,9 +5352,6 @@ app.get('/api/leaderboard', (req, res) => {
 
 // Get organization structure - Central Committee + Wing Chiefs
 app.get('/api/org-structure', (req, res) => {
-  const centralPositions = ['Chief Coordinator', 'Executive Director', 'Director of Programs', 'President', 'Vice President', 'Secretary', 'Treasurer', 'General Secretary'];
-  const wingChiefRoles = ['Wing Chief Executive', 'Wing President', 'Wing Chief', 'President', 'Chief Coordinator'];
-  
   // Get Central Committee members (volunteers with executive positions)
   db.all(`
     SELECT 
@@ -5354,20 +5368,34 @@ app.get('/api/org-structure', (req, res) => {
       'central' as committee_type,
       0 as sort_order
     FROM volunteers v
-    WHERE v.position IN (${centralPositions.map(() => '?').join(',')})
-    OR v.position LIKE '%Coordinator%'
-    OR v.position LIKE '%Director%'
-    OR v.position LIKE '%President%'
+    WHERE v.position IS NOT NULL 
+    AND v.position != ''
+    AND v.position != 'Volunteer'
+    AND v.position != 'Member'
+    AND (
+      v.position LIKE '%Chief%'
+      OR v.position LIKE '%Coordinator%'
+      OR v.position LIKE '%Director%'
+      OR v.position LIKE '%President%'
+      OR v.position LIKE '%Vice President%'
+      OR v.position LIKE '%Secretary%'
+      OR v.position LIKE '%Treasurer%'
+      OR v.position LIKE '%Executive%'
+    )
     ORDER BY 
       CASE 
-        WHEN v.position LIKE '%Chief%' THEN 1
-        WHEN v.position LIKE '%President%' THEN 2
-        WHEN v.position LIKE '%Director%' THEN 3
-        WHEN v.position LIKE '%Secretary%' THEN 4
-        WHEN v.position LIKE '%Treasurer%' THEN 5
-        ELSE 6
-      END
-  `, centralPositions, (centralErr, centralMembers) => {
+        WHEN v.position LIKE '%Chief Coordinator%' THEN 1
+        WHEN v.position LIKE '%Chief%' THEN 2
+        WHEN v.position LIKE '%Executive Director%' THEN 3
+        WHEN v.position LIKE '%President%' THEN 4
+        WHEN v.position LIKE '%Director%' THEN 5
+        WHEN v.position LIKE '%Secretary%' THEN 6
+        WHEN v.position LIKE '%Treasurer%' THEN 7
+        WHEN v.position LIKE '%Coordinator%' THEN 8
+        ELSE 9
+      END,
+      v.full_name
+  `, [], (centralErr, centralMembers) => {
     if (centralErr) return res.status(500).json({ error: centralErr.message });
     
     // Get Wing Chiefs (top role from each wing)

@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "org.uyho.twa",
+      "sha256_cert_fingerprints": [
+        "4D:83:AA:3A:F8:E9:9C:0C:5C:C7:4B:63:AB:96:09:5A:22:FD:D2:95:43:18:94:4E:30:83:C1:F9:6C:F6:AE:7F"
+      ]
+    }
+  }
+]

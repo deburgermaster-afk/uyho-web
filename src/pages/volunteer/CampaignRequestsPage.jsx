@@ -8,15 +8,17 @@ export default function CampaignRequestsPage() {
   const [pendingCampaigns, setPendingCampaigns] = useState([]);
   const [pendingCourses, setPendingCourses] = useState([]);
   const [pendingDirectAids, setPendingDirectAids] = useState([]);
+  const [pendingWings, setPendingWings] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showDeclineModal, setShowDeclineModal] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedDirectAid, setSelectedDirectAid] = useState(null);
+  const [selectedWing, setSelectedWing] = useState(null);
   const [declineReason, setDeclineReason] = useState('');
   const [processing, setProcessing] = useState(null);
   const [filter, setFilter] = useState('pending'); // pending, approved, declined, all
-  const [activeTab, setActiveTab] = useState('campaigns'); // campaigns, courses, directaid
+  const [activeTab, setActiveTab] = useState('campaigns'); // campaigns, courses, directaid, wings
 
   useEffect(() => {
     if (activeTab === 'campaigns') {
@@ -25,6 +27,8 @@ export default function CampaignRequestsPage() {
       fetchCourses();
     } else if (activeTab === 'directaid') {
       fetchDirectAids();
+    } else if (activeTab === 'wings') {
+      fetchWings();
     }
   }, [filter, activeTab]);
 
@@ -108,6 +112,73 @@ export default function CampaignRequestsPage() {
       console.error('Failed to fetch direct aids:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchWings = async () => {
+    setLoading(true);
+    try {
+      let url = '/api/wings';
+      if (filter === 'pending') {
+        url = '/api/wings/pending';
+      } else if (filter === 'approved') {
+        url = '/api/wings?status=approved';
+      } else if (filter === 'declined') {
+        url = '/api/wings?status=declined';
+      }
+      
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setPendingWings(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch wings:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApproveWing = async (wingId) => {
+    setProcessing(wingId);
+    try {
+      const res = await fetch(`/api/wings/${wingId}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviewerId: localStorage.getItem('volunteerId') })
+      });
+      if (res.ok) {
+        fetchWings();
+      }
+    } catch (err) {
+      console.error('Failed to approve wing:', err);
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleDeclineWing = async () => {
+    if (!selectedWing) return;
+    setProcessing(selectedWing.id);
+    try {
+      const res = await fetch(`/api/wings/${selectedWing.id}/decline`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          reviewerId: localStorage.getItem('volunteerId'),
+          reason: declineReason 
+        })
+      });
+      if (res.ok) {
+        fetchWings();
+        setShowDeclineModal(false);
+        setSelectedWing(null);
+        setDeclineReason('');
+      }
+    } catch (err) {
+      console.error('Failed to decline wing:', err);
+    } finally {
+      setProcessing(null);
     }
   };
 
@@ -251,6 +322,11 @@ export default function CampaignRequestsPage() {
     a.creator_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const filteredWings = pendingWings.filter(w =>
+    w.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    w.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    w.created_by_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   const getStatusBadge = (status) => {
     switch (status) {
       case 'approved':
@@ -277,24 +353,30 @@ export default function CampaignRequestsPage() {
         </div>
 
         {/* Type Tabs */}
-        <div className="flex border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+        <div className="flex border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-x-auto">
           <button
             onClick={() => setActiveTab('campaigns')}
-            className={`flex-1 py-3 text-sm font-bold ${activeTab === 'campaigns' ? 'text-primary border-b-2 border-primary' : 'text-slate-500'}`}
+            className={`flex-1 py-3 text-xs font-bold whitespace-nowrap px-2 ${activeTab === 'campaigns' ? 'text-primary border-b-2 border-primary' : 'text-slate-500'}`}
           >
             Campaigns
           </button>
           <button
             onClick={() => setActiveTab('courses')}
-            className={`flex-1 py-3 text-sm font-bold ${activeTab === 'courses' ? 'text-primary border-b-2 border-primary' : 'text-slate-500'}`}
+            className={`flex-1 py-3 text-xs font-bold whitespace-nowrap px-2 ${activeTab === 'courses' ? 'text-primary border-b-2 border-primary' : 'text-slate-500'}`}
           >
             Courses
           </button>
           <button
             onClick={() => setActiveTab('directaid')}
-            className={`flex-1 py-3 text-sm font-bold ${activeTab === 'directaid' ? 'text-primary border-b-2 border-primary' : 'text-slate-500'}`}
+            className={`flex-1 py-3 text-xs font-bold whitespace-nowrap px-2 ${activeTab === 'directaid' ? 'text-primary border-b-2 border-primary' : 'text-slate-500'}`}
           >
             Direct Aid
+          </button>
+          <button
+            onClick={() => setActiveTab('wings')}
+            className={`flex-1 py-3 text-xs font-bold whitespace-nowrap px-2 ${activeTab === 'wings' ? 'text-primary border-b-2 border-primary' : 'text-slate-500'}`}
+          >
+            Wings
           </button>
         </div>
 
@@ -305,7 +387,7 @@ export default function CampaignRequestsPage() {
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
             <input
               type="text"
-              placeholder={activeTab === 'campaigns' ? "Search campaigns..." : "Search courses..."}
+              placeholder={activeTab === 'campaigns' ? "Search campaigns..." : activeTab === 'wings' ? "Search wings..." : "Search..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-3 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -735,11 +817,129 @@ export default function CampaignRequestsPage() {
               )}
             </>
           )}
+
+          {/* Wings Tab Content */}
+          {activeTab === 'wings' && (
+            <>
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
+                </div>
+              ) : filteredWings.length === 0 ? (
+                <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800">
+                  <span className="material-symbols-outlined text-5xl text-slate-300 mb-3 block">location_city</span>
+                  <p className="text-slate-500 font-medium">No wings found</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {filter === 'pending' ? 'No pending wing requests' : 
+                     filter === 'approved' ? 'No approved wings yet' :
+                     filter === 'declined' ? 'No declined wings' : 'No wings in the system'}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 pb-4">
+                  {filteredWings.map(wing => (
+                    <div key={wing.id} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                      <div className="p-4">
+                        {/* Wing Header */}
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center overflow-hidden">
+                            {wing.image ? (
+                              <img src={wing.image} alt={wing.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="material-symbols-outlined text-primary text-xl">location_city</span>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-bold text-slate-900 dark:text-white">{wing.name}</h3>
+                            <p className="text-xs text-slate-500">{wing.location || 'No location specified'}</p>
+                          </div>
+                          <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
+                            wing.approval_status === 'approved' ? 'bg-green-100 dark:bg-green-900/30 text-green-600' :
+                            wing.approval_status === 'declined' ? 'bg-red-100 dark:bg-red-900/30 text-red-600' :
+                            'bg-amber-100 dark:bg-amber-900/30 text-amber-600'
+                          }`}>
+                            {wing.approval_status === 'approved' ? 'Approved' : 
+                             wing.approval_status === 'declined' ? 'Declined' : 'Pending'}
+                          </span>
+                        </div>
+
+                        {/* Wing Description */}
+                        {wing.description && (
+                          <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">{wing.description}</p>
+                        )}
+
+                        {/* Wing Stats */}
+                        <div className="flex items-center gap-4 text-xs text-slate-500 mb-3">
+                          <span className="flex items-center gap-1">
+                            <span className="material-symbols-outlined text-sm">group</span>
+                            {wing.member_count || 0} members
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <span className="material-symbols-outlined text-sm">calendar_today</span>
+                            {new Date(wing.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+
+                        {/* Creator Info */}
+                        <div className="flex items-center gap-2 py-2 border-t border-slate-100 dark:border-slate-800">
+                          <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden">
+                            <span className="material-symbols-outlined text-sm text-slate-400">person</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{wing.created_by_name || 'Unknown'}</p>
+                            <p className="text-xs text-slate-400">Wing Creator</p>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                          {(wing.approval_status === 'pending' || !wing.approval_status) && (
+                            <>
+                              <button
+                                onClick={() => handleApproveWing(wing.id)}
+                                disabled={processing === wing.id}
+                                className="flex-1 py-2.5 text-xs font-bold text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                              >
+                                {processing === wing.id ? (
+                                  <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
+                                ) : (
+                                  <>
+                                    <span className="material-symbols-outlined text-sm">check</span>
+                                    Approve
+                                  </>
+                                )}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedWing(wing);
+                                  setShowDeclineModal(true);
+                                }}
+                                disabled={processing === wing.id}
+                                className="flex-1 py-2.5 text-xs font-bold text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                              >
+                                <span className="material-symbols-outlined text-sm">close</span>
+                                Decline
+                              </button>
+                            </>
+                          )}
+                          {wing.approval_status && wing.approval_status !== 'pending' && (
+                            <span className="text-xs text-slate-400 w-full text-center">
+                              {wing.approval_status === 'approved' ? 'Wing has been approved' : 'Wing has been declined'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </main>
 
       {/* Decline Modal */}
-      {showDeclineModal && (selectedCampaign || selectedCourse || selectedDirectAid) && (
+      {showDeclineModal && (selectedCampaign || selectedCourse || selectedDirectAid || selectedWing) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-sm overflow-hidden shadow-xl">
             <div className="p-4 border-b border-slate-200 dark:border-slate-800">
@@ -748,7 +948,7 @@ export default function CampaignRequestsPage() {
                   <span className="material-symbols-outlined text-red-600">warning</span>
                 </div>
                 <div>
-                  <h3 className="font-bold">Decline {selectedCampaign ? 'Campaign' : selectedCourse ? 'Course' : 'Direct Aid'}</h3>
+                  <h3 className="font-bold">Decline {selectedCampaign ? 'Campaign' : selectedCourse ? 'Course' : selectedWing ? 'Wing' : 'Direct Aid'}</h3>
                   <p className="text-xs text-slate-500">This action cannot be undone</p>
                 </div>
               </div>
@@ -756,7 +956,7 @@ export default function CampaignRequestsPage() {
             
             <div className="p-4">
               <p className="text-sm mb-3">
-                You are about to decline: <strong>{selectedCampaign?.title || selectedCourse?.title || selectedDirectAid?.beneficiary_name || selectedDirectAid?.title}</strong>
+                You are about to decline: <strong>{selectedCampaign?.title || selectedCourse?.title || selectedWing?.name || selectedDirectAid?.beneficiary_name || selectedDirectAid?.title}</strong>
               </p>
               
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
@@ -765,11 +965,11 @@ export default function CampaignRequestsPage() {
               <textarea
                 value={declineReason}
                 onChange={(e) => setDeclineReason(e.target.value)}
-                placeholder={`Enter the reason for declining this ${selectedCampaign ? 'campaign' : selectedCourse ? 'course' : 'direct aid'}...`}
+                placeholder={`Enter the reason for declining this ${selectedCampaign ? 'campaign' : selectedCourse ? 'course' : selectedWing ? 'wing' : 'direct aid'}...`}
                 rows={4}
                 className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
               />
-              <p className="text-[10px] text-slate-400 mt-1">This note will be visible to the {selectedCampaign ? 'campaign organizer' : selectedCourse ? 'course instructor' : 'campaign creator'}.</p>
+              <p className="text-[10px] text-slate-400 mt-1">This note will be visible to the {selectedCampaign ? 'campaign organizer' : selectedCourse ? 'course instructor' : selectedWing ? 'wing creator' : 'campaign creator'}.</p>
             </div>
 
             <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex gap-2">
@@ -779,6 +979,7 @@ export default function CampaignRequestsPage() {
                   setSelectedCampaign(null);
                   setSelectedCourse(null);
                   setSelectedDirectAid(null);
+                  setSelectedWing(null);
                   setDeclineReason('');
                 }}
                 className="flex-1 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
@@ -786,7 +987,7 @@ export default function CampaignRequestsPage() {
                 Cancel
               </button>
               <button
-                onClick={selectedCampaign ? handleDeclineCampaign : selectedCourse ? handleDeclineCourse : handleDeclineDirectAid}
+                onClick={selectedCampaign ? handleDeclineCampaign : selectedCourse ? handleDeclineCourse : selectedWing ? handleDeclineWing : handleDeclineDirectAid}
                 disabled={(!declineReason.trim() && !selectedDirectAid) || processing}
                 className="flex-1 py-2.5 text-sm font-bold text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
               >
@@ -795,7 +996,7 @@ export default function CampaignRequestsPage() {
                 ) : (
                   <>
                     <span className="material-symbols-outlined text-sm">close</span>
-                    Decline {selectedCampaign ? 'Campaign' : selectedCourse ? 'Course' : 'Direct Aid'}
+                    Decline {selectedCampaign ? 'Campaign' : selectedCourse ? 'Course' : selectedWing ? 'Wing' : 'Direct Aid'}
                   </>
                 )}
               </button>
