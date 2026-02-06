@@ -2269,7 +2269,7 @@ app.get('/api/campaigns', (req, res) => {
       (SELECT COUNT(*) FROM campaign_team ct WHERE ct.campaign_id = c.id AND ct.approval_status = 'approved') AS team_count,
       CASE 
         WHEN c.event_date IS NOT NULL THEN 
-          MAX(0, CAST(julianday(c.event_date) - julianday('now') AS INTEGER))
+          GREATEST(0, EXTRACT(DAY FROM c.event_date - CURRENT_DATE)::INTEGER)
         ELSE c.days_left 
       END AS days_left
   `
@@ -2418,7 +2418,7 @@ app.get('/api/campaigns/:id', (req, res) => {
         ) AS user_role,
         CASE 
           WHEN c.event_date IS NOT NULL THEN 
-            MAX(0, CAST(julianday(c.event_date) - julianday('now') AS INTEGER))
+            GREATEST(0, EXTRACT(DAY FROM c.event_date - CURRENT_DATE)::INTEGER)
           ELSE c.days_left 
         END AS days_left
       FROM campaigns c
@@ -2434,7 +2434,7 @@ app.get('/api/campaigns/:id', (req, res) => {
         NULL AS user_role,
         CASE 
           WHEN c.event_date IS NOT NULL THEN 
-            MAX(0, CAST(julianday(c.event_date) - julianday('now') AS INTEGER))
+            GREATEST(0, EXTRACT(DAY FROM c.event_date - CURRENT_DATE)::INTEGER)
           ELSE c.days_left 
         END AS days_left
       FROM campaigns c

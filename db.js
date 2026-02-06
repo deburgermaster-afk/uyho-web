@@ -427,6 +427,7 @@ export async function initializeMySQLDatabase() {
       priority VARCHAR(50) DEFAULT 'normal',
       expires_at TIMESTAMP,
       is_read INTEGER DEFAULT 0,
+      is_archived INTEGER DEFAULT 0,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`,
     
@@ -657,6 +658,8 @@ export async function initializeMySQLDatabase() {
       creator_id INTEGER NOT NULL,
       wing_id INTEGER,
       allow_member_add INTEGER DEFAULT 1,
+      last_message_id INTEGER,
+      last_message_at TIMESTAMP,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`,
@@ -685,6 +688,7 @@ export async function initializeMySQLDatabase() {
       volunteer_id INTEGER NOT NULL,
       role VARCHAR(100) DEFAULT 'member',
       sort_order INTEGER DEFAULT 0,
+      is_parent INTEGER DEFAULT 0,
       joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       UNIQUE (wing_id, volunteer_id)
     )`,
@@ -898,6 +902,7 @@ export async function initializeMySQLDatabase() {
       user_id INTEGER NOT NULL,
       conversation_id INTEGER,
       group_id INTEGER,
+      pinned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       UNIQUE (user_id, conversation_id),
       UNIQUE (user_id, group_id)
@@ -1086,8 +1091,38 @@ export async function initializeMySQLDatabase() {
       await client.query("ALTER TABLE notifications ADD COLUMN IF NOT EXISTS actor_avatar TEXT");
       await client.query("ALTER TABLE notifications ADD COLUMN IF NOT EXISTS priority VARCHAR(50) DEFAULT 'normal'");
       await client.query("ALTER TABLE notifications ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP");
+      await client.query("ALTER TABLE notifications ADD COLUMN IF NOT EXISTS is_archived INTEGER DEFAULT 0");
     } catch (err) {
       // Columns may already exist
+    }
+
+    // Add missing columns to wing_members table
+    try {
+      await client.query("ALTER TABLE wing_members ADD COLUMN IF NOT EXISTS is_parent INTEGER DEFAULT 0");
+    } catch (err) {
+      // Columns may already exist
+    }
+
+    // Add missing columns to group_chats table
+    try {
+      await client.query("ALTER TABLE group_chats ADD COLUMN IF NOT EXISTS last_message_id INTEGER");
+      await client.query("ALTER TABLE group_chats ADD COLUMN IF NOT EXISTS last_message_at TIMESTAMP");
+    } catch (err) {
+      // Columns may already exist
+    }
+
+    // Add missing columns to pinned_chats table
+    try {
+      await client.query("ALTER TABLE pinned_chats ADD COLUMN IF NOT EXISTS pinned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+    } catch (err) {
+      // Columns may already exist
+    }
+
+    // Fix messages receiver_id - ensure it's nullable
+    try {
+      await client.query("ALTER TABLE messages ALTER COLUMN receiver_id DROP NOT NULL");
+    } catch (err) {
+      // Constraint may not exist
     }
 
     // Add missing columns to announcements table
