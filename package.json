@@ -12,6 +12,7 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.0",
     "concurrently": "^9.2.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
